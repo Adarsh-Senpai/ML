@@ -15,6 +15,10 @@ player_match_wins = 0
 ai_match_wins = 0
 match_over = False
 
+def handler(request, response):
+    return response.json({"message": "Hello from Python API"})
+
+
 def reset_game():
     global board, current_player, done, winner
     board = [0] * 9
