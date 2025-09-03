@@ -111,25 +111,58 @@ def reset_match():
 # Game UI
 # -----------------------------
 st.subheader("Best of 3 Matches")
-st.write(f"Player Wins: {st.session_state.player_match_wins} | AI Wins: {st.session_state.ai_match_wins}")
-st.write(f"Round Wins: {st.session_state.round_wins} | Losses: {st.session_state.round_losses} | Draws: {st.session_state.round_draws}")
+st.write(f"🏆 Player: {st.session_state.player_match_wins} | AI: {st.session_state.ai_match_wins}")
+st.write(f"Wins: {st.session_state.round_wins} | Losses: {st.session_state.round_losses} | Draws: {st.session_state.round_draws}")
 
-# Display board as a grid of buttons
-cols = st.columns(3)
+# Custom CSS for board
+st.markdown("""
+<style>
+.board-cell {
+    width: 80px;
+    height: 80px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    margin: 2px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.board-cell:hover {
+    background-color: #e9ecef;
+}
+.cell-x {
+    color: #dc3545;
+}
+.cell-o {
+    color: #007bff;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Display board as grid
 for i in range(3):
-    for j in range(3):
+    cols = st.columns(3)
+    for j, col in enumerate(cols):
         idx = i*3 + j
         label = ""
+        cell_class = ""
         if st.session_state.board[idx] == 1:
             label = "X"
+            cell_class = "cell-x"
         elif st.session_state.board[idx] == -1:
             label = "O"
-        if cols[j].button(label, key=idx) and st.session_state.board[idx] == 0:
-            make_move(idx, 1)
-            # AI move
-            if not st.session_state.done and not st.session_state.match_over:
-                ai_pos = ai_choose_move()
-                make_move(ai_pos, -1)
+            cell_class = "cell-o"
+        html_button = f'<div class="board-cell {cell_class}">{label}</div>'
+        if col.button(label, key=idx):
+            if st.session_state.board[idx] == 0:
+                make_move(idx, 1)
+                # AI move
+                if not st.session_state.done and not st.session_state.match_over:
+                    ai_pos = ai_choose_move()
+                    make_move(ai_pos, -1)
 
 # Display round/match results
 if st.session_state.match_over:
@@ -146,5 +179,5 @@ elif st.session_state.done:
         st.info("🤝 Draw!")
 
 # Reset buttons
-st.button("Reset Round", on_click=reset_round)
-st.button("Reset Match", on_click=reset_match)
+st.button("🔄 Reset Round", on_click=reset_round)
+st.button("🏁 Reset Match", on_click=reset_match)
