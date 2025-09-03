@@ -15,9 +15,9 @@ player_match_wins = 0
 ai_match_wins = 0
 match_over = False
 
-def handler(_, response):
-    return response.json({"message": "Hello from Vercel Python runtime"})
-
+def handler(request, response):
+    # Example: simple ML placeholder
+    return response.json({"message": "ML model is running!"})
 
 
 def reset_game():
