@@ -15,8 +15,9 @@ player_match_wins = 0
 ai_match_wins = 0
 match_over = False
 
-def handler(request, response):
-    return response.json({"message": "Hello from Python API"})
+def handler(_, response):
+    return response.json({"message": "Hello from Vercel Python runtime"})
+
 
 
 def reset_game():
