@@ -5,11 +5,17 @@ st.set_page_config(page_title="Tic Tac Toe AI", layout="centered")
 st.title("🎮 Tic Tac Toe AI")
 st.write("Fast Q-Learning AI (Player vs AI)")
 
-# Initialize session state for game variables
+# -----------------------------
+# Initialize game state
+# -----------------------------
 if "board" not in st.session_state:
     st.session_state.board = [0] * 9
 if "current_player" not in st.session_state:
     st.session_state.current_player = 1
+if "done" not in st.session_state:
+    st.session_state.done = False
+if "winner" not in st.session_state:
+    st.session_state.winner = None
 if "round_wins" not in st.session_state:
     st.session_state.round_wins = 0
 if "round_losses" not in st.session_state:
@@ -20,22 +26,22 @@ if "player_match_wins" not in st.session_state:
     st.session_state.player_match_wins = 0
 if "ai_match_wins" not in st.session_state:
     st.session_state.ai_match_wins = 0
-if "done" not in st.session_state:
-    st.session_state.done = False
 if "match_over" not in st.session_state:
     st.session_state.match_over = False
 
+# -----------------------------
 # Helper functions
-def check_winner(board_state):
+# -----------------------------
+def check_winner(board):
     wins = [
         [0,1,2],[3,4,5],[6,7,8],
         [0,3,6],[1,4,7],[2,5,8],
         [0,4,8],[2,4,6]
     ]
     for line in wins:
-        if board_state[line[0]] != 0 and board_state[line[0]] == board_state[line[1]] == board_state[line[2]]:
-            return board_state[line[0]]
-    if 0 not in board_state:
+        if board[line[0]] != 0 and board[line[0]] == board[line[1]] == board[line[2]]:
+            return board[line[0]]
+    if 0 not in board:
         return 0
     return None
 
@@ -47,6 +53,7 @@ def make_move(pos, player):
         winner = check_winner(st.session_state.board)
         if winner is not None:
             st.session_state.done = True
+            st.session_state.winner = winner
             if winner == 1:
                 st.session_state.round_wins += 1
                 st.session_state.player_match_wins += 1
@@ -74,11 +81,11 @@ def ai_choose_move():
         test_board[move] = 1
         if check_winner(test_board) == 1:
             return move
-    # Center
+    # Take center
     if 4 in available:
         return 4
-    # Corners
-    corners = [0, 2, 6, 8]
+    # Take corners
+    corners = [0,2,6,8]
     corner_moves = [m for m in available if m in corners]
     if corner_moves:
         return random.choice(corner_moves)
@@ -89,6 +96,7 @@ def reset_round():
     st.session_state.board = [0]*9
     st.session_state.current_player = 1
     st.session_state.done = False
+    st.session_state.winner = None
 
 def reset_match():
     reset_round()
@@ -99,11 +107,14 @@ def reset_match():
     st.session_state.ai_match_wins = 0
     st.session_state.match_over = False
 
+# -----------------------------
 # Game UI
+# -----------------------------
 st.subheader("Best of 3 Matches")
 st.write(f"Player Wins: {st.session_state.player_match_wins} | AI Wins: {st.session_state.ai_match_wins}")
 st.write(f"Round Wins: {st.session_state.round_wins} | Losses: {st.session_state.round_losses} | Draws: {st.session_state.round_draws}")
 
+# Display board as a grid of buttons
 cols = st.columns(3)
 for i in range(3):
     for j in range(3):
@@ -113,26 +124,23 @@ for i in range(3):
             label = "X"
         elif st.session_state.board[idx] == -1:
             label = "O"
-        if st.session_state.done or st.session_state.board[idx] != 0:
-            cols[j].button(label, key=idx, disabled=True)
-        else:
-            if cols[j].button(label, key=idx):
-                make_move(idx, 1)
-                if not st.session_state.done and not st.session_state.match_over:
-                    ai_pos = ai_choose_move()
-                    make_move(ai_pos, -1)
+        if cols[j].button(label, key=idx) and st.session_state.board[idx] == 0:
+            make_move(idx, 1)
+            # AI move
+            if not st.session_state.done and not st.session_state.match_over:
+                ai_pos = ai_choose_move()
+                make_move(ai_pos, -1)
 
-# Display result messages
+# Display round/match results
 if st.session_state.match_over:
     if st.session_state.player_match_wins >= 3:
         st.success("🎉 You won the match!")
     else:
         st.error("🤖 AI won the match!")
 elif st.session_state.done:
-    winner = check_winner(st.session_state.board)
-    if winner == 1:
+    if st.session_state.winner == 1:
         st.success("✅ You win this round!")
-    elif winner == -1:
+    elif st.session_state.winner == -1:
         st.error("🤖 AI wins this round!")
     else:
         st.info("🤝 Draw!")
