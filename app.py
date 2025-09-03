@@ -117,11 +117,11 @@ def player_move(pos):
         # AI moves after player
         if not st.session_state.done and not st.session_state.match_over:
             st.session_state.current_player = -1
-            st.experimental_rerun()  # immediately rerun to show AI move
+            st.experimental_rerun()
 
 def ai_move():
     if st.session_state.current_player == -1 and not st.session_state.done:
-        time.sleep(0.5)  # AI thinking delay
+        time.sleep(0.3)  # AI thinking delay
         pos = ai_choose_move()
         make_move(pos, -1)
         st.session_state.current_player = 1
@@ -138,16 +138,23 @@ st.subheader("🏆 Best of 3 Matches")
 st.write(f"Player: {st.session_state.player_match_wins} | AI: {st.session_state.ai_match_wins}")
 st.write(f"Wins: {st.session_state.round_wins} | Losses: {st.session_state.round_losses} | Draws: {st.session_state.round_draws}")
 
-board_html = '<div style="display:grid; grid-template-columns: repeat(3, 80px); gap:5px; justify-content:center;">'
+# Render HTML board with improved style
+board_html = '<div style="display:grid; grid-template-columns: repeat(3, 100px); gap:8px; justify-content:center; margin-bottom:15px;">'
 for idx, cell in enumerate(st.session_state.board):
     color = "#dc3545" if cell == 1 else "#007bff" if cell == -1 else "#f8f9fa"
     label = "X" if cell == 1 else "O" if cell == -1 else ""
-    board_html += f'<button style="width:80px;height:80px;font-size:32px;font-weight:bold;color:{color};border-radius:8px;border:2px solid #e9ecef;background:#f8f9fa;cursor:pointer;" onclick="window.location.href=\'?move={idx}\'">{label}</button>'
+    board_html += f'''
+        <button style="
+            width:100px;height:100px;font-size:36px;font-weight:bold;
+            color:{color};border-radius:12px;border:2px solid #e9ecef;
+            background:#f8f9fa;cursor:pointer;box-shadow:0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.2s;" onclick="window.location.href='?move={idx}'">{label}</button>
+    '''
 board_html += '</div>'
 st.markdown(board_html, unsafe_allow_html=True)
 
-# Handle player click
-move_idx = st.experimental_get_query_params().get("move")
+# Handle player click using st.query_params
+move_idx = st.query_params.get("move")
 if move_idx:
     player_move(int(move_idx[0]))
 
