@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+import time
 
 st.set_page_config(page_title="Tic Tac Toe AI", layout="centered")
 st.title("🎮 Tic Tac Toe AI")
@@ -108,63 +109,51 @@ def reset_match():
     st.session_state.match_over = False
 
 # -----------------------------
-# Game UI
+# Game logic
 # -----------------------------
-st.subheader("Best of 3 Matches")
-st.write(f"🏆 Player: {st.session_state.player_match_wins} | AI: {st.session_state.ai_match_wins}")
+def player_move(pos):
+    if st.session_state.current_player == 1 and not st.session_state.done:
+        make_move(pos, 1)
+        # AI moves after player
+        if not st.session_state.done and not st.session_state.match_over:
+            st.session_state.current_player = -1
+            st.experimental_rerun()  # immediately rerun to show AI move
+
+def ai_move():
+    if st.session_state.current_player == -1 and not st.session_state.done:
+        time.sleep(0.5)  # AI thinking delay
+        pos = ai_choose_move()
+        make_move(pos, -1)
+        st.session_state.current_player = 1
+        st.experimental_rerun()
+
+# Run AI move automatically
+if st.session_state.current_player == -1 and not st.session_state.done:
+    ai_move()
+
+# -----------------------------
+# Display board
+# -----------------------------
+st.subheader("🏆 Best of 3 Matches")
+st.write(f"Player: {st.session_state.player_match_wins} | AI: {st.session_state.ai_match_wins}")
 st.write(f"Wins: {st.session_state.round_wins} | Losses: {st.session_state.round_losses} | Draws: {st.session_state.round_draws}")
 
-# Custom CSS for board
-st.markdown("""
-<style>
-.board-cell {
-    width: 80px;
-    height: 80px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    font-weight: bold;
-    margin: 2px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.board-cell:hover {
-    background-color: #e9ecef;
-}
-.cell-x {
-    color: #dc3545;
-}
-.cell-o {
-    color: #007bff;
-}
-</style>
-""", unsafe_allow_html=True)
+board_html = '<div style="display:grid; grid-template-columns: repeat(3, 80px); gap:5px; justify-content:center;">'
+for idx, cell in enumerate(st.session_state.board):
+    color = "#dc3545" if cell == 1 else "#007bff" if cell == -1 else "#f8f9fa"
+    label = "X" if cell == 1 else "O" if cell == -1 else ""
+    board_html += f'<button style="width:80px;height:80px;font-size:32px;font-weight:bold;color:{color};border-radius:8px;border:2px solid #e9ecef;background:#f8f9fa;cursor:pointer;" onclick="window.location.href=\'?move={idx}\'">{label}</button>'
+board_html += '</div>'
+st.markdown(board_html, unsafe_allow_html=True)
 
-# Display board as grid
-for i in range(3):
-    cols = st.columns(3)
-    for j, col in enumerate(cols):
-        idx = i*3 + j
-        label = ""
-        cell_class = ""
-        if st.session_state.board[idx] == 1:
-            label = "X"
-            cell_class = "cell-x"
-        elif st.session_state.board[idx] == -1:
-            label = "O"
-            cell_class = "cell-o"
-        html_button = f'<div class="board-cell {cell_class}">{label}</div>'
-        if col.button(label, key=idx):
-            if st.session_state.board[idx] == 0:
-                make_move(idx, 1)
-                # AI move
-                if not st.session_state.done and not st.session_state.match_over:
-                    ai_pos = ai_choose_move()
-                    make_move(ai_pos, -1)
+# Handle player click
+move_idx = st.experimental_get_query_params().get("move")
+if move_idx:
+    player_move(int(move_idx[0]))
 
-# Display round/match results
+# -----------------------------
+# Round/Match Results
+# -----------------------------
 if st.session_state.match_over:
     if st.session_state.player_match_wins >= 3:
         st.success("🎉 You won the match!")
