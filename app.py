@@ -5,11 +5,7 @@ import streamlit as st
 st.title("My ML App")
 st.write("Hello! This is running on Streamlit Cloud 🚀")
 
-# Example: take user input
-user_input = st.text_input("Enter your name:")
 
-if user_input:
-    st.success(f"Hello {user_input}, your ML model is ready!")
 
 
 app = Flask(__name__)
